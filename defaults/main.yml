@@ -1,0 +1,26 @@
+---
+# defaults file for inverso.docker-ce
+#
+
+docker_ce__state: 'present'
+docker_ce__repo_configure: False
+
+# allowed keys, see https://docs.ansible.com/ansible/latest/modules/yum_repository_module.html
+docker_ce__repo:
+  - file: 'docker-ce'
+    name: 'docker-ce-stable'
+    description: 'Docker Community Edition'
+    baseurl: 'https://download.docker.com/linux/centos/$releasever/$basearch/stable'
+    gpgcheck: True
+    gpgkey: 'https://download.docker.com/linux/centos/gpg'
+    proxy: 'http://mail-proxy01.inverso.local:8080'
+    state: '{{ docker_ce__state }}'
+
+docker_ce__packages:
+  - 'device-mapper-persistent-data'
+  - 'docker-ce'
+
+docker_ce__service_dir: '/etc/systemd/system/docker.service.d'
+docker_ce__service_enabled: 'yes'
+
+docker_ce__proxy: {}

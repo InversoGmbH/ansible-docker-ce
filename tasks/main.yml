@@ -1,0 +1,62 @@
+---
+# tasks file for inverso.docker-ce
+#
+
+- name: ensure docker-ce repo exists
+  yum_repository: 
+    file: '{{ item.file }}'
+    name: '{{ item.name }}'
+    description: '{{ item.description }}'
+    baseurl: '{{ item.baseurl }}'
+    gpgcheck: '{{ item.gpgcheck | default(omit) }}'
+    gpgkey: '{{ item.gpgkey | default(omit) }}'
+    proxy: '{{ item.proxy | default(omit) }}'
+    state: "{{ item.state | default('present') }}"
+  loop: '{{ docker_ce__repo }}'
+  when: docker_ce__repo_configure | bool == True
+
+- name: ensure docker-ce gpg key is imported
+  rpm_key:
+    state: present
+    key: '{{ item }}'
+  loop: "{{ docker_ce__repo | selectattr('gpgcheck','equalto',true) | map(attribute='gpgkey') | list | unique }}"
+  when: docker_ce__repo_configure | bool == True
+
+- name: ensure docker system group is present
+  group:
+    name: 'docker'
+    system: yes
+    state: present
+
+- name: ensure docker-ce packages are present
+  package:
+    name: '{{ docker_ce__packages }}'
+    state: present
+
+- name: ensure docker-ce service directory is configured
+  file:
+    dest: '{{ docker_ce__service_dir }}'
+    state: directory
+    recurse: True
+  when: (docker_ce__proxy | length > 1)
+
+- name: ensure proxy environment is configured
+  copy:
+    dest: '{{ docker_ce__service_dir }}/http-proxy.conf'
+    content: |
+      [Service]
+      {% if docker_ce__proxy.HTTP_PROXY  %}
+      Environment="HTTP_PROXY={{ docker_ce__proxy.HTTP_PROXY }}
+      {% endif %}
+      {% if docker_ce__proxy.HTTPS_PROXY %}
+      Environment="HTTPS_PROXY={{ docker_ce__proxy.HTTPS_PROXY }}
+      {% endif %}
+      {% if docker_ce__proxy.NOPROXY     %}
+      Environment="NOPROXY={{ docker_ce__proxy.NOPROXY }}
+      {% endif %}
+  when: (docker_ce__proxy | length > 1)
+
+- name: ensure docker service is configured
+  systemd:
+    name: docker
+    enabled: '{{ docker_ce__service_enabled }}'
