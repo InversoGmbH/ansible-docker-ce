@@ -1,6 +1,15 @@
 ---
 # tasks file for inverso.docker-ce
-#
+
+- name: check required variables
+  assert:
+    that:
+      - docker_ce__state                  in ['present','absent']
+      - docker_ce__repo_configure         in [True, False]
+      - docker_ce__docker_ce__service_dir | mandatory
+      - docker_ce__packages               is iterable
+      - docker_ce__proxy_state            in ['present','absent','skip','']
+  tags: ['varcheck']
 
 - name: ensure docker-ce repo exists
   yum_repository: 
@@ -62,7 +71,7 @@
   file:
     path: '{{ docker_ce__service_dir }}/http-proxy.conf'
     state: absent
-  when: docker_ce__proxy_state | lower not in ['absent']
+  when: docker_ce__proxy_state | default('absent') | lower in ['absent']
 
 - name: ensure docker service is configured
   systemd:
