@@ -23,5 +23,5 @@ docker_ce__packages:
 docker_ce__service_dir: '/etc/systemd/system/docker.service.d'
 docker_ce__service_enabled: 'yes'
 
-docker_ce__proxy_state: 'absent'
+docker_ce__proxy_state: 'skip'
 docker_ce__proxy: {}
