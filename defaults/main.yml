@@ -13,7 +13,7 @@ docker_ce__repo:
     baseurl: 'https://download.docker.com/linux/centos/$releasever/$basearch/stable'
     gpgcheck: True
     gpgkey: 'https://download.docker.com/linux/centos/gpg'
-    proxy: 'http://mail-proxy01.inverso.local:8080'
+    proxy: '_none_'
     state: '{{ docker_ce__state }}'
 
 docker_ce__packages:
