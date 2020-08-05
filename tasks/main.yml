@@ -54,7 +54,15 @@
       {% if docker_ce__proxy.NOPROXY     %}
       Environment="NOPROXY={{ docker_ce__proxy.NOPROXY }}
       {% endif %}
-  when: (docker_ce__proxy | length > 1)
+  when: 
+    - docker_ce__proxy_state | lower in ['present']
+    - (docker_ce__proxy | length > 1)
+  
+- name: ensure proxy environment configuration is absent
+  file:
+    path: '{{ docker_ce__service_dir }}/http-proxy.conf'
+    state: absent
+  when: docker_ce__proxy_state | lower not in ['absent']
 
 - name: ensure docker service is configured
   systemd:
